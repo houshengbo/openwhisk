@@ -57,7 +57,7 @@ class WskActionSequenceTests
             val name = "sequence action"
 
             assetHelper.withCleaner(wsk.pkg, pkgname) {
-                (pkg, _) => pkg.bind("/whisk.system/util", pkgname)
+                (pkg, _) => pkg.bind("/whisk.system/utils", pkgname)
             }
 
             assetHelper.withCleaner(wsk.action, name) {
