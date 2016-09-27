@@ -1,0 +1,5 @@
+---
+# This playbook deploys the catalog with cloudant trigger service and the alarms trigger serivce
+
+- include: cloudanttrigger.yml
+- include: alarmstrigger.yml

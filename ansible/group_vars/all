@@ -41,6 +41,12 @@ kafka:
 zookeeper:
   port: 2181
 
+serviceprovider:
+  cloudanttrigger:
+    port: 11000
+  alarmstrigger:
+    port: 11001
+
 invoker:
   port: 12001
   numcore: 2
@@ -108,9 +114,9 @@ catalog_auth_key: "{{ openwhisk_home }}/ansible/files/auth.whisk.system"
 #
 catalog_repos:
   openwhisk-catalog:
-    url: https://github.com/openwhisk/openwhisk-catalog.git
+    url: https://github.com/houshengbo/openwhisk-catalog.git
     # Set the local location as the same level as openwhisk home, but it can be changed.
     location: "{{ openwhisk_home }}/../openwhisk-catalog"
-    version: "HEAD"
+    version: "add-cloudant-feed"
     repo_update: "yes"
 

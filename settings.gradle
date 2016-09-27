@@ -15,6 +15,9 @@ include 'tools:cli'
 
 include 'sdk:docker'
 
+include 'serviceproviders:cloudantTrigger'
+include 'serviceproviders:alarmsTrigger'
+
 include 'tests'
 include 'tests:dat:blackbox:badaction'
 include 'tests:dat:blackbox:badproxy'

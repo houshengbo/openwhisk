@@ -61,6 +61,12 @@ invoker.coreshare={{ invoker.coreshare }}
 invoker.serializeDockerOp={{ invoker.serializeDockerOp }}
 invoker.serializeDockerPull={{ invoker.serializeDockerPull }}
 
+cloudanttrigger.host={{ groups["serviceprovider"]|first }}
+cloudanttrigger.host.port={{ serviceprovider.cloudanttrigger.port }}
+
+alarmstrigger.host={{ groups["serviceprovider"]|first }}
+alarmstrigger.host.port={{ serviceprovider.alarmstrigger.port }}
+
 consulserver.docker.endpoint={{ groups["consul_servers"]|first }}:{{ docker.port }}
 edge.docker.endpoint={{ groups["edge"]|first }}:{{ docker.port }}
 kafka.docker.endpoint={{ groups["kafka"]|first }}:{{ docker.port }}
