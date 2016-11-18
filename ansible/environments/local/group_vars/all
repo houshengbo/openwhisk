@@ -26,3 +26,11 @@ limits:
   triggers:
     fires:
       perMinute: 60
+
+# Object Storage configuration
+os_service: "9.37.247.209"
+os_port: "8080"
+os_username: "admin:admin"
+os_password: "admin"
+os_policy_id: "1"
+os_policy: "{{ lookup('file', '{{ playbook_dir }}/roles/objectstorage/files/os_policy.json') }}"

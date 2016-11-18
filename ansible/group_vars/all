@@ -54,6 +54,8 @@ nginx:
     api: 443
     adminportal: 8443
 
+db_objectstorage: "objectstoragetrigger"
+
 db:
   immortal: subjects
   authkeys:
