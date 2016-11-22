@@ -4,6 +4,7 @@ python.27=python
 use.cli.download=false
 nginx.conf.dir={{ nginx_conf_dir }}
 testing.auth={{ openwhisk_home }}/ansible/files/auth.guest
+jaas.conf={{ openwhisk_home }}/ansible/files/jaas.conf
 vcap.services.file=
 
 whisk.logs.dir={{ whisk_logs_dir }}
@@ -91,3 +92,6 @@ db.whisk.apigw={{ db_apigw }}
 apigw.auth.user={{apigw_auth_user}}
 apigw.auth.pwd={{apigw_auth_pwd}}
 apigw.host={{apigw_host}}
+
+kafkatrigger.host={{ groups["serviceprovider"]|first }}
+kafkatrigger.host.port={{ serviceprovider.kafkatrigger.port }}
