@@ -91,3 +91,6 @@ db.whisk.apigw={{ db_apigw }}
 apigw.auth.user={{apigw_auth_user}}
 apigw.auth.pwd={{apigw_auth_pwd}}
 apigw.host={{apigw_host}}
+
+kafkatrigger.host={{ groups["serviceprovider"]|first }}
+kafkatrigger.host.port={{ serviceprovider.kafkatrigger.port }}
