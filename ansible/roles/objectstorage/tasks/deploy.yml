@@ -1,0 +1,6 @@
+# Install the Object Storage feed actions.
+
+- name: install route management actions
+  shell: ./installObjectStorage.sh {{ catalog_auth_key }} {{ groups['edge'] | first }} {{ catalog_namespace }} {{ cli_path }} chdir="{{ openwhisk_home }}/ansible/roles/objectstorage/files"
+  environment:
+    OPENWHISK_HOME: "{{ openwhisk_home }}"

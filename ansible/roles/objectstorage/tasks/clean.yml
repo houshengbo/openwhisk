@@ -1,0 +1,6 @@
+# Remove the Object Storage feed actions.
+
+- name: remove route management actions
+  shell: ./uninstallObjectStorage.sh {{ catalog_auth_key }} {{ groups['edge'] | first }} {{ catalog_namespace }} {{ cli_path }} chdir="{{ openwhisk_home }}/ansible/roles/objectstorage/files"
+  environment:
+    OPENWHISK_HOME: "{{ openwhisk_home }}"

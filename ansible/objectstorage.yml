@@ -1,0 +1,6 @@
+---
+# This playbook deploys Openwhisk Controllers.  
+
+- hosts: ansible
+  roles:
+  - objectstorage
