@@ -59,6 +59,11 @@ nginx:
     adminportal: 8443
 
 db_apigw: "{{ db_prefix }}gwapis"
+
+serviceprovider:
+  kafkatrigger:
+    port: 11003
+
 db:
   immortal: subjects
   authkeys:
@@ -130,4 +135,12 @@ catalog_repos:
     # Set the local location as the same level as openwhisk home, but it can be changed.
     location: "{{ openwhisk_home }}/../openwhisk-catalog"
     version: "HEAD"
+    repo_update: "no"
+
+provider_repos:
+  openwhisk-package-kafka:
+    url: https://github.com/openwhisk/openwhisk-package-kafka.git
+    location: "{{ openwhisk_home }}/../openwhisk-package-kafka"
+    version: "HEAD"
     repo_update: "yes"
+    trigger_port: "{{serviceprovider.kafkatrigger.port}}"
