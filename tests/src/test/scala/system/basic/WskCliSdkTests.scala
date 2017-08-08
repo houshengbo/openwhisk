@@ -33,6 +33,7 @@ import common.WskProps
 import common.WskTestHelpers
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD:tests/src/test/scala/system/basic/WskSdkTests.scala
 class WskSdkTests extends TestHelpers with WskTestHelpers {
 
   implicit val wskprops = WskProps()
@@ -86,6 +87,47 @@ class WskSdkTests extends TestHelpers with WskTestHelpers {
       lines.drop(2).mkString("\n") shouldBe originalLines.drop(2).mkString("\n")
     } finally {
       FileUtils.deleteDirectory(dir)
+=======
+class WskCliSdkTests
+    extends TestHelpers
+    with WskTestHelpers {
+
+    implicit val wskprops = WskProps()
+    val wsk = new Wsk
+
+    behavior of "Wsk SDK"
+
+    it should "download docker action sdk" in {
+        val dir = File.createTempFile("wskinstall", ".tmp")
+        dir.delete()
+        dir.mkdir() should be(true)
+        try {
+            wsk.cli(wskprops.overrides ++ Seq("sdk", "install", "docker"), workingDir = dir).
+                stdout should include("The docker skeleton is now installed at the current directory.")
+
+            val sdk = new File(dir, "dockerSkeleton")
+            sdk.exists() should be(true)
+            sdk.isDirectory() should be(true)
+
+            val dockerfile = new File(sdk, "Dockerfile")
+            dockerfile.exists() should be(true)
+            dockerfile.isFile() should be(true)
+            val lines = FileUtils.readLines(dockerfile)
+            // confirm that the image is correct
+            lines.get(1) shouldBe "FROM openwhisk/dockerskeleton"
+
+            val buildAndPushFile = new File(sdk, "buildAndPush.sh")
+            buildAndPushFile.canExecute() should be(true)
+
+            // confirm there is no other divergence from the base dockerfile
+            val originalDockerfile = WhiskProperties.getFileRelativeToWhiskHome("sdk/docker/Dockerfile")
+            val originalLines = FileUtils.readLines(originalDockerfile)
+            lines.get(0) shouldBe originalLines.get(0)
+            lines.drop(2).mkString("\n") shouldBe originalLines.drop(2).mkString("\n")
+        } finally {
+            FileUtils.deleteDirectory(dir)
+        }
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation:tests/src/test/scala/system/basic/WskCliSdkTests.scala
     }
   }
 

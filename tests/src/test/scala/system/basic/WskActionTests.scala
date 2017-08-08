@@ -21,9 +21,11 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import common.ActivationResult
+import common.BaseWsk
 import common.JsHelpers
 import common.TestHelpers
 import common.TestUtils
+import common.TestUtils.SUCCESS_EXIT
 import common.Wsk
 import common.WskProps
 import common.WskTestHelpers
@@ -33,6 +35,7 @@ import spray.json.JsObject
 import spray.json.pimpAny
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskActionTests extends TestHelpers with WskTestHelpers with JsHelpers {
 
   implicit val wskprops = WskProps()
@@ -103,6 +106,36 @@ class WskActionTests extends TestHelpers with WskTestHelpers with JsHelpers {
 
     assetHelper.withCleaner(wsk.pkg, packageName) { (pkg, _) =>
       pkg.create(packageName, shared = Some(true))
+=======
+abstract class WskActionTests
+    extends TestHelpers
+    with WskTestHelpers
+    with JsHelpers {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+
+    val testString = "this is a test"
+    val testResult = JsObject("count" -> testString.split(" ").length.toJson)
+    val guestNamespace = wskprops.namespace
+
+    behavior of "Whisk actions"
+
+    it should "invoke an action returning a promise" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val name = "hello promise"
+            assetHelper.withCleaner(wsk.action, name) {
+                (action, _) => action.create(name, Some(TestUtils.getTestActionFilename("helloPromise.js")))
+            }
+
+            val run = wsk.action.invoke(name)
+            withActivation(wsk.activation, run) {
+                activation =>
+                    activation.response.status shouldBe "success"
+                    activation.response.result shouldBe Some(JsObject("done" -> true.toJson))
+                    activation.logs.get.mkString(" ") shouldBe empty
+            }
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
 
     assetHelper.withCleaner(wsk.action, fullQualifiedName) {
@@ -231,6 +264,7 @@ class WskActionTests extends TestHelpers with WskTestHelpers with JsHelpers {
     wsk.parseJsonString(rr.stdout).getFieldPath("exec", "code") shouldBe Some(JsString(""))
   }
 
+<<<<<<< HEAD
   it should "blocking invoke of nested blocking actions" in withAssetCleaner(wskprops) { (wp, assetHelper) =>
     val name = "nestedBlockingAction"
     val child = "wc"
@@ -281,6 +315,44 @@ class WskActionTests extends TestHelpers with WskTestHelpers with JsHelpers {
     val name = "ping"
     assetHelper.withCleaner(wsk.action, name) { (action, _) =>
       action.create(name, Some(TestUtils.getTestActionFilename("ping.js")))
+=======
+    it should "blocking invoke of nested blocking actions" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val name = "nestedBlockingAction"
+            val child = "wc"
+
+            assetHelper.withCleaner(wsk.action, name) {
+                (action, _) => action.create(name, Some(TestUtils.getTestActionFilename("wcbin.js")))
+            }
+            assetHelper.withCleaner(wsk.action, child) {
+                (action, _) => action.create(child, Some(TestUtils.getTestActionFilename("wc.js")))
+            }
+
+            val run = wsk.action.invoke(name, Map("payload" -> testString.toJson), blocking = true, expectedExitCode = SUCCESS_EXIT)
+            val activation = wsk.parseJsonString(run.stdout).convertTo[ActivationResult]
+
+            withClue(s"check failed for activation: $activation") {
+                val wordCount = testString.split(" ").length
+                activation.response.result.get shouldBe JsObject("binaryCount" -> s"${wordCount.toBinaryString} (base 2)".toJson)
+            }
+    }
+
+    it should "blocking invoke an asynchronous action" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val name = "helloAsync"
+            assetHelper.withCleaner(wsk.action, name) {
+                (action, _) => action.create(name, Some(TestUtils.getTestActionFilename("helloAsync.js")))
+            }
+
+            val run = wsk.action.invoke(name, Map("payload" -> testString.toJson), blocking = true, expectedExitCode = SUCCESS_EXIT)
+            val activation = wsk.parseJsonString(run.stdout).convertTo[ActivationResult]
+
+            withClue(s"check failed for activation: $activation") {
+                activation.response.status shouldBe "success"
+                activation.response.result shouldBe Some(testResult)
+                activation.logs shouldBe Some(List())
+            }
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
 
     val run = wsk.action.invoke(name, Map("payload" -> "google.com".toJson))

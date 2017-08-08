@@ -20,13 +20,14 @@ package system.basic
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import common.JsHelpers
-import common.WskTestHelpers
+import common.Wsk
+
+/**
+ * Tests sequence execution
+ */
 
 @RunWith(classOf[JUnitRunner])
-class WskUnicodeNodeTests extends WskUnicodeTests with WskTestHelpers with JsHelpers {
-
-  override lazy val actionKind = "nodejs:6"
-  override lazy val actionSource = "unicode.js"
-
+class WskCliSequenceTests
+    extends WskSequenceTests {
+    override val wsk = new Wsk
 }

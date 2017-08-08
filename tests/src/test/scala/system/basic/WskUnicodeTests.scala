@@ -23,7 +23,7 @@ import org.scalatest.junit.JUnitRunner
 import common.JsHelpers
 import common.TestHelpers
 import common.TestUtils
-import common.Wsk
+import common.BaseWsk
 import common.WskProps
 import common.WskTestHelpers
 import spray.json._
@@ -34,8 +34,13 @@ abstract class WskUnicodeTests extends TestHelpers with WskTestHelpers with JsHe
   val actionKind: String
   val actionSource: String
 
+<<<<<<< HEAD
   implicit val wskprops = WskProps()
   val wsk = new Wsk
+=======
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
   s"$actionKind action" should "Ensure that UTF-8 in supported in source files, input params, logs, and output results" in withAssetCleaner(
     wskprops) { (wp, assetHelper) =>

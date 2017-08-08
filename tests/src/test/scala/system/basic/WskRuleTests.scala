@@ -21,14 +21,16 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import common.TestHelpers
 import common.TestUtils
-import common.Wsk
+import common.BaseWsk
+import common.TestUtils.RunResult
 import common.WskProps
 import common.WskTestHelpers
 import spray.json._
 import spray.json.DefaultJsonProtocol._
-import java.time.Instant
+//import java.time.Instant
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskRuleTests extends TestHelpers with WskTestHelpers {
 
   implicit val wskprops = WskProps()
@@ -64,6 +66,45 @@ class WskRuleTests extends TestHelpers with WskTestHelpers {
         trigger.create(name)
       }
     }
+=======
+abstract class WskRuleTests
+    extends TestHelpers
+    with WskTestHelpers {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+    val defaultAction = TestUtils.getTestActionFilename("wc.js")
+    val secondAction = TestUtils.getTestActionFilename("hello.js")
+    val testString = "this is a test"
+    val testResult = JsObject("count" -> testString.split(" ").length.toJson)
+
+    /**
+     * Invoker clock skew can sometimes make it appear as if an action was invoked
+     * _before_ the trigger was fired. The "fudge factor" below allows the test to look
+     * for action activations that occur starting at most this amount of time before
+     * the trigger was fired.
+     */
+    val activationTimeSkewFactorMs = 500
+
+    /**
+     * Sets up trigger -> rule -> action triplets. Deduplicates triggers and rules
+     * and links it all up.
+     *
+     * @param rules Tuple3s containing
+     *   (rule, trigger, (action name for created action, action name for the rule binding, actionFile))
+     *   where the action name for the created action is allowed to differ from that used by the rule binding
+     *   for cases that reference actions in a package binding.
+     */
+    def ruleSetup(rules: Seq[(String, String, (String, String, String))], assetHelper: AssetCleaner) = {
+        val triggers = rules.map(_._2).distinct
+        val actions = rules.map(_._3).distinct
+
+        triggers.foreach { trigger =>
+            assetHelper.withCleaner(wsk.trigger, trigger) {
+                (trigger, name) => trigger.create(name)
+            }
+        }
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
     actions.foreach {
       case (actionName, _, file) =>
@@ -129,7 +170,26 @@ class WskRuleTests extends TestHelpers with WskTestHelpers {
       pkg.create(name)
     }
 
+<<<<<<< HEAD
     ruleSetup(Seq((ruleName, triggerName, (pkgActionName, pkgActionName, defaultAction))), assetHelper)
+=======
+    /**
+     * Append the current timestamp in ms
+     */
+    def withTimestamp(text: String) = s"${text}-${System.currentTimeMillis}"
+
+    behavior of "Whisk rules"
+
+    /*it should "invoke the action attached on trigger fire, creating an activation for each entity including the cause" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val ruleName = withTimestamp("r1to1")
+            val triggerName = withTimestamp("t1to1")
+            val actionName = withTimestamp("a1 to 1") // spaces in name intended for greater test coverage
+
+            ruleSetup(Seq(
+                (ruleName, triggerName, (actionName, actionName, defaultAction))),
+                assetHelper)
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
     val now = Instant.now
     val run = wsk.trigger.fire(triggerName, Map("payload" -> testString.toJson))
@@ -184,6 +244,7 @@ class WskRuleTests extends TestHelpers with WskTestHelpers {
         _.head.cause shouldBe Some(triggerActivation.activationId)
       }
 
+<<<<<<< HEAD
       withActivationsFromEntity(
         wsk.activation,
         actionName,
@@ -248,6 +309,63 @@ class WskRuleTests extends TestHelpers with WskTestHelpers {
         val results = activations.map(_.response.result)
         results should contain theSameElementsAs Seq(Some(testResult), Some(testResult))
       }
+=======
+    it should "connect two triggers to two different actions, invoking them both eventually" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val triggerName1 = withTimestamp("t1to1a")
+            val triggerName2 = withTimestamp("t1to1b")
+            val actionName1 = withTimestamp("a1to1a")
+            val actionName2 = withTimestamp("a1to1b")
+
+            ruleSetup(Seq(
+                ("r2to2a", triggerName1, (actionName1, actionName1, defaultAction)),
+                ("r2to2b", triggerName1, (actionName2, actionName2, secondAction)),
+                ("r2to2c", triggerName2, (actionName1, actionName1, defaultAction)),
+                ("r2to2d", triggerName2, (actionName2, actionName2, secondAction))),
+                assetHelper)
+
+            val testPayloads = Seq("got three words", "got four words, period")
+            val run = wsk.trigger.fire(triggerName1, Map("payload" -> testPayloads(0).toJson))
+            wsk.trigger.fire(triggerName2, Map("payload" -> testPayloads(1).toJson))
+
+            withActivation(wsk.activation, run) {
+                triggerActivation =>
+                    withActivationsFromEntity(wsk.activation, actionName1, N = 2, since = Some(triggerActivation.start.minusMillis(activationTimeSkewFactorMs))) {
+                        activations =>
+                            val results = activations.map(_.response.result)
+                            val expectedResults = testPayloads.map { payload =>
+                                Some(JsObject("count" -> payload.split(" ").length.toJson))
+                            }
+
+                            results should contain theSameElementsAs expectedResults
+                    }
+                    withActivationsFromEntity(wsk.activation, actionName2, N = 2, since = Some(triggerActivation.start.minusMillis(activationTimeSkewFactorMs))) {
+                        activations =>
+                            // drops the leftmost 39 characters (timestamp + streamname)
+                            val logs = activations.map(_.logs.get.map(_.drop(39))).flatten
+                            val expectedLogs = testPayloads.map { payload => s"hello, $payload!" }
+
+                            logs should contain theSameElementsAs expectedLogs
+                    }
+            }
+    }*/
+
+    it should "disable a rule and check its status is displayed when listed" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val ruleName = withTimestamp("ruleDisable")
+            val ruleNameEnable = withTimestamp("ruleEnable")
+            val triggerName = withTimestamp("ruleDisableTrigger")
+            val actionName = withTimestamp("ruleDisableAction")
+
+            ruleSetup(Seq(
+                (ruleName, triggerName, (actionName, actionName, defaultAction)),
+                (ruleNameEnable, triggerName, (actionName, actionName, defaultAction))),
+                assetHelper)
+
+            wsk.rule.disable(ruleName)
+            val ruleList = wsk.rule.list()
+            verifyRuleList(ruleList, ruleNameEnable, ruleName)
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
   }
 
@@ -419,4 +537,13 @@ class WskRuleTests extends TestHelpers with WskTestHelpers {
       wsk.rule.list().stdout should not include ("Unknown")
   }
 
+    def verifyRuleList(ruleListResult: RunResult, ruleNameEnable: String, ruleName: String) = {
+        val ruleList = ruleListResult.stdout
+        val listOutput = ruleList.lines
+        listOutput.find(_.contains(ruleNameEnable)).get should (include(ruleNameEnable) and include("active"))
+        listOutput.find(_.contains(ruleName)).get should (include(ruleName) and include("inactive"))
+        ruleList should not include ("Unknown")
+    }
 }
+
+//[{"name":"ruleEnable-1502808916087","publish":false,"annotations":[],"version":"0.0.1","namespace":"guest"},{"name":"ruleDisable-1502808916087","publish":false,"annotations":[],"version":"0.0.1","namespace":"guest"}]

@@ -25,13 +25,14 @@ import common.TestHelpers
 import common.TestUtils
 import common.TestUtils.ANY_ERROR_EXIT
 import common.TestUtils.RunResult
-import common.Wsk
+import common.BaseWsk
 import common.WskProps
 import common.WskTestHelpers
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskBasicNodeTests extends TestHelpers with WskTestHelpers with JsHelpers {
 
   implicit val wskprops = WskProps()
@@ -108,6 +109,35 @@ class WskBasicNodeTests extends TestHelpers with WskTestHelpers with JsHelpers {
 
     assetHelper.withCleaner(wsk.action, name) { (action, _) =>
       action.create(name, defaultAction)
+=======
+abstract class WskBasicNodeTests
+    extends TestHelpers
+    with WskTestHelpers
+    with JsHelpers {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+    val defaultAction = Some(TestUtils.getTestActionFilename("hello.js"))
+    val currentNodeJsDefaultKind = "nodejs:6"
+
+    behavior of "NodeJS runtime"
+
+    it should "Map a kind of nodejs:default to the current default NodeJS runtime" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val name = "usingDefaultNodeAlias"
+
+            assetHelper.withCleaner(wsk.action, name) {
+                (action, _) =>
+                    action.create(name, defaultAction, kind = Some("nodejs:default"))
+            }
+
+            val result = wsk.action.get(name)
+            withPrintOnFailure(result) {
+                () =>
+                    val action = convertRunResultToJsObject(result)
+                    action.getFieldPath("exec", "kind") should be(Some(currentNodeJsDefaultKind.toJson))
+            }
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
 
     val result = wsk.action.get(name)

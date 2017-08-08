@@ -23,7 +23,7 @@ import org.scalatest.junit.JUnitRunner
 import common.JsHelpers
 import common.TestHelpers
 import common.TestUtils
-import common.Wsk
+import common.BaseWsk
 import common.WskProps
 import common.WskTestHelpers
 import spray.json.pimpString
@@ -32,12 +32,24 @@ import common.TestUtils.RunResult
 import spray.json.JsObject
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskBasicSwift3Tests extends TestHelpers with WskTestHelpers with JsHelpers {
 
   implicit val wskprops = WskProps()
   val wsk = new Wsk
   val defaultAction = Some(TestUtils.getTestActionFilename("hello.swift"))
   lazy val currentSwiftDefaultKind = "swift:3"
+=======
+abstract class WskBasicSwift3Tests
+    extends TestHelpers
+    with WskTestHelpers
+    with JsHelpers {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+    val defaultAction = Some(TestUtils.getTestActionFilename("hello.swift"))
+    lazy val currentSwiftDefaultKind = "swift:3"
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
   behavior of "Swift runtime"
 

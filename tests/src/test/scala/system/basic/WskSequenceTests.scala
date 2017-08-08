@@ -32,7 +32,7 @@ import common.StreamLogging
 import common.TestHelpers
 import common.TestUtils
 import common.TestUtils._
-import common.Wsk
+import common.BaseWsk
 import common.WskProps
 import common.WskTestHelpers
 
@@ -49,6 +49,7 @@ import whisk.http.Messages.sequenceIsTooLong
  */
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskSequenceTests extends TestHelpers with ScalatestRouteTest with WskTestHelpers with StreamLogging {
 
   implicit val wskprops = WskProps()
@@ -130,6 +131,80 @@ class WskSequenceTests extends TestHelpers with ScalatestRouteTest with WskTestH
       assetHelper.withCleaner(wsk.action, actionName) { (action, _) =>
         action.create(name = actionName, artifact = Some(file), timeout = Some(allowedActionDuration))
       }
+=======
+abstract class WskSequenceTests
+    extends TestHelpers
+    with ScalatestRouteTest
+    with WskTestHelpers
+    with StreamLogging {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+    val allowedActionDuration = 120 seconds
+    val shortDuration = 10 seconds
+
+    val whiskConfig = new WhiskConfig(Map(WhiskConfig.actionSequenceMaxLimit -> null))
+    assert(whiskConfig.isValid)
+
+    behavior of "Wsk Sequence"
+
+    it should "invoke a sequence with normal payload and payload with error field" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val name = "sequence"
+            val actions = Seq("split", "sort", "head", "cat")
+            for (actionName <- actions) {
+                val file = TestUtils.getTestActionFilename(s"$actionName.js")
+                assetHelper.withCleaner(wsk.action, actionName) { (action, _) =>
+                    action.create(name = actionName, artifact = Some(file), timeout = Some(allowedActionDuration))
+                }
+            }
+
+            println(s"Sequence $actions")
+            assetHelper.withCleaner(wsk.action, name) {
+                val sequence = actions.mkString(",")
+                (action, _) => action.create(name, Some(sequence), kind = Some("sequence"), timeout = Some(allowedActionDuration))
+            }
+
+            val now = "it is now " + new Date()
+            val args = Array("what time is it?", now)
+            val run = wsk.action.invoke(name, Map("payload" -> args.mkString("\n").toJson))
+            withActivation(wsk.activation, run, totalWait = 4 * allowedActionDuration) {
+                activation =>
+                    checkSequenceLogsAndAnnotations(activation, 4) // 4 activations in this sequence
+                    activation.cause shouldBe None // topmost sequence
+                    val result = activation.response.result.get
+                    result.fields.get("payload") shouldBe defined
+                    result.fields.get("length") should not be defined
+                    result.fields.get("lines") shouldBe Some(JsArray(Vector(now.toJson)))
+            }
+
+            // update action sequence and run it with normal payload
+            val newSequence = Seq("split", "sort").mkString(",")
+            println(s"Update sequence to $newSequence")
+            wsk.action.create(name, Some(newSequence), kind = Some("sequence"), timeout = Some(allowedActionDuration), update = true)
+            val secondrun = wsk.action.invoke(name, Map("payload" -> args.mkString("\n").toJson))
+            withActivation(wsk.activation, secondrun, totalWait = 2 * allowedActionDuration) {
+                activation =>
+                    checkSequenceLogsAndAnnotations(activation, 2) // 2 activations in this sequence
+                    val result = activation.response.result.get
+                    result.fields.get("length") shouldBe Some(2.toJson)
+                    result.fields.get("lines") shouldBe Some(args.sortWith(_.compareTo(_) < 0).toArray.toJson)
+            }
+
+            println("Run sequence with error in payload")
+            // run sequence with error in the payload
+            // sequence should run with no problems, error should be ignored in this test case
+            // result of sequence should be identical to previous invocation above
+            val payload = Map("error" -> JsString("irrelevant error string"), "payload" -> args.mkString("\n").toJson)
+            val thirdrun = wsk.action.invoke(name, payload)
+            withActivation(wsk.activation, thirdrun, totalWait = 2 * allowedActionDuration) {
+                activation =>
+                    checkSequenceLogsAndAnnotations(activation, 2) // 2 activations in this sequence
+                    val result = activation.response.result.get
+                    result.fields.get("length") shouldBe Some(2.toJson)
+                    result.fields.get("lines") shouldBe Some(args.sortWith(_.compareTo(_) < 0).toArray.toJson)
+            }
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
 
     // create inner sequence

@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-package system.basic
+package system.basic;
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import common.JsHelpers
-import common.WskTestHelpers
+import common.Wsk
 
+/**
+ * Tests of the text console
+ */
 @RunWith(classOf[JUnitRunner])
-class WskUnicodePython3Tests extends WskUnicodeTests with WskTestHelpers with JsHelpers {
-
-  override lazy val actionKind = "python:3"
-  override lazy val actionSource = "unicode3.py"
-
+class WskCliConsoleTests
+    extends WskConsoleTests {
+    override val wsk = new Wsk
 }

@@ -26,7 +26,7 @@ import common.TestUtils
 import common.TestUtils.FORBIDDEN
 import common.TestUtils.NOT_FOUND
 import common.TestUtils.TIMEOUT
-import common.Wsk
+import common.BaseWsk
 import common.WskProps
 import common.WskTestHelpers
 import spray.json._
@@ -35,6 +35,7 @@ import whisk.core.entity.Subject
 import whisk.core.entity.WhiskPackage
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskEntitlementTests extends TestHelpers with WskTestHelpers with BeforeAndAfterAll {
 
   val wsk = new Wsk
@@ -143,6 +144,19 @@ class WskEntitlementTests extends TestHelpers with WskTestHelpers with BeforeAnd
   it should "list shared packages" in withAssetCleaner(guestWskProps) { (wp, assetHelper) =>
     assetHelper.withCleaner(wsk.pkg, samplePackage) { (pkg, _) =>
       pkg.create(samplePackage, shared = Some(true))(wp)
+=======
+abstract class WskEntitlementTests
+    extends TestHelpers
+    with WskTestHelpers
+    with BeforeAndAfterAll {
+
+    val wsk: BaseWsk
+    lazy val defaultWskProps = WskProps()
+    lazy val guestWskProps = getAdditionalTestSubject(Subject().asString)
+
+    override def afterAll() = {
+        disposeAdditionalTestSubject(guestWskProps.namespace)
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
 
     val fullyQualifiedPackageName = s"/$guestNamespace/$samplePackage"
@@ -184,6 +198,7 @@ class WskEntitlementTests extends TestHelpers with WskTestHelpers with BeforeAnd
       pkg.create(samplePackage, shared = Some(true))(wp)
     }
 
+<<<<<<< HEAD
     val name = "bindPackage"
     val annotations = Map("a" -> "A".toJson, WhiskPackage.bindingFieldName -> "xxx".toJson)
     val provider = s"/$guestNamespace/$samplePackage"
@@ -199,6 +214,23 @@ class WskEntitlementTests extends TestHelpers with WskTestHelpers with BeforeAnd
       annotationString should include regex (s""""key":"${WhiskPackage.bindingFieldName}"""")
       annotationString should not include regex(""""key":"xxx"""")
       annotationString should include regex (s""""name":"${samplePackage}"""")
+=======
+    behavior of "Wsk Package Listing"
+
+    it should "list shared packages" in withAssetCleaner(guestWskProps) {
+        (wp, assetHelper) =>
+            assetHelper.withCleaner(wsk.pkg, samplePackage) {
+                (pkg, _) => pkg.create(samplePackage, shared = Some(true))(wp)
+            }
+
+            verifyListSharedPackages(guestNamespace, samplePackage)
+    }
+
+    def verifyListSharedPackages(guestNamespace: String, samplePackage: String) = {
+        val fullyQualifiedPackageName = s"/$guestNamespace/$samplePackage"
+        val result = wsk.pkg.list(Some(s"/$guestNamespace"))(defaultWskProps).stdout
+        result should include regex (fullyQualifiedPackageName + """\s+shared""")
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
   }
 
@@ -207,12 +239,35 @@ class WskEntitlementTests extends TestHelpers with WskTestHelpers with BeforeAnd
       pkg.create(samplePackage, shared = Some(false))(wp)
     }
 
+<<<<<<< HEAD
     val name = "bindPackage"
     val provider = s"/$guestNamespace/$samplePackage"
     withAssetCleaner(defaultWskProps) { (wp, assetHelper) =>
       assetHelper.withCleaner(wsk.pkg, name, confirmDelete = false) { (pkg, _) =>
         pkg.bind(provider, name, expectedExitCode = FORBIDDEN)(wp)
       }
+=======
+    it should "list shared package actions" in withAssetCleaner(guestWskProps) {
+        (wp, assetHelper) =>
+            assetHelper.withCleaner(wsk.pkg, samplePackage) {
+                (pkg, _) => pkg.create(samplePackage, shared = Some(true))(wp)
+            }
+
+            assetHelper.withCleaner(wsk.action, fullSampleActionName) {
+                val file = Some(TestUtils.getTestActionFilename("empty.js"))
+                (action, _) => action.create(fullSampleActionName, file, kind = Some("nodejs:default"))(wp)
+            }
+
+            verifyListSharedPackageActions(guestNamespace, samplePackage, fullSampleActionName)
+    }
+
+    def verifyListSharedPackageActions(guestNamespace: String,
+        samplePackage: String, fullSampleActionName: String) = {
+        val fullyQualifiedPackageName = s"/$guestNamespace/$samplePackage"
+        val fullyQualifiedActionName = s"/$guestNamespace/$fullSampleActionName"
+        val result = wsk.action.list(Some(fullyQualifiedPackageName))(defaultWskProps)
+        result.stdout should include regex (fullyQualifiedActionName)
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
   }
 
@@ -244,6 +299,7 @@ class WskEntitlementTests extends TestHelpers with WskTestHelpers with BeforeAnd
     })(defaultWskProps)
   }
 
+<<<<<<< HEAD
   it should "invoke an action sequence from package" in withAssetCleaner(guestWskProps) { (wp, assetHelper) =>
     assetHelper.withCleaner(wsk.pkg, samplePackage) { (pkg, _) =>
       pkg.create(samplePackage, parameters = Map("a" -> "A".toJson), shared = Some(true))(wp)
@@ -254,6 +310,11 @@ class WskEntitlementTests extends TestHelpers with WskTestHelpers with BeforeAnd
       (action, _) =>
         action.create(fullSampleActionName, file)(wp)
     }
+=======
+            val fullyQualifiedActionName = s"/$guestNamespace/$fullSampleActionName"
+            val stdout = wsk.action.get(fullyQualifiedActionName)(defaultWskProps).stdout
+            verifyGetInvokeAction(stdout)
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
     withAssetCleaner(defaultWskProps) { (wp, assetHelper) =>
       assetHelper.withCleaner(wsk.action, "sequence") { (action, name) =>
@@ -276,11 +337,46 @@ class WskEntitlementTests extends TestHelpers with WskTestHelpers with BeforeAnd
       pkg.create(privateSamplePackage, parameters = Map("a" -> "A".toJson), shared = Some(true))(guestwp)
     }
 
+<<<<<<< HEAD
     assetHelper.withCleaner(wsk.action, fullSampleActionName) {
       val file = Some(TestUtils.getTestActionFilename("hello.js"))
       (action, _) =>
         action.create(fullSampleActionName, file)(guestwp)
         action.create(s"$privateSamplePackage/$sampleAction", file)(guestwp)
+=======
+    def verifyGetInvokeAction(stdout: String) = {
+        stdout should include("name")
+        stdout should include("parameters")
+        stdout should include("limits")
+        stdout should include regex (""""key": "a"""")
+        stdout should include regex (""""value": "A"""")
+    }
+
+    it should "invoke an action sequence from package" in withAssetCleaner(guestWskProps) {
+        (wp, assetHelper) =>
+            assetHelper.withCleaner(wsk.pkg, samplePackage) {
+                (pkg, _) => pkg.create(samplePackage, parameters = Map("a" -> "A".toJson), shared = Some(true))(wp)
+            }
+
+            assetHelper.withCleaner(wsk.action, fullSampleActionName) {
+                val file = Some(TestUtils.getTestActionFilename("hello.js"))
+                (action, _) => action.create(fullSampleActionName, file)(wp)
+            }
+
+            withAssetCleaner(defaultWskProps) {
+                (wp, assetHelper) =>
+                    assetHelper.withCleaner(wsk.action, "sequence") {
+                        (action, name) =>
+                            val fullyQualifiedActionName = s"/$guestNamespace/$fullSampleActionName"
+                            action.create(name, Some(fullyQualifiedActionName), kind = Some("sequence"), update = true)(wp)
+                    }
+
+                    val run = wsk.action.invoke("sequence")(defaultWskProps)
+                    withActivation(wsk.activation, run)({
+                        _.response.success shouldBe true
+                    })(defaultWskProps)
+            }
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
     }
 
     withAssetCleaner(defaultWskProps) { (dwp, assetHelper) =>

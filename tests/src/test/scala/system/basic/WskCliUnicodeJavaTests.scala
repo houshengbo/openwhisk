@@ -21,12 +21,24 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import common.JsHelpers
+import common.Wsk
 import common.WskTestHelpers
 
 @RunWith(classOf[JUnitRunner])
-class WskUnicodeSwift3Tests extends WskUnicodeTests with WskTestHelpers with JsHelpers {
+<<<<<<< HEAD:tests/src/test/scala/system/basic/WskUnicodeJavaTests.scala
+class WskUnicodeJavaTests extends WskUnicodeTests with WskTestHelpers with JsHelpers {
 
-  override lazy val actionKind = "swift:3"
-  override lazy val actionSource = "unicode.swift"
+  override lazy val actionKind = "java"
+  override lazy val actionSource = "unicode.jar"
+=======
+class WskCliUnicodeJavaTests
+    extends WskUnicodeTests
+    with WskTestHelpers
+    with JsHelpers {
+
+    override lazy val actionKind = "java"
+    override lazy val actionSource = "unicode.jar"
+    override val wsk = new Wsk
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation:tests/src/test/scala/system/basic/WskCliUnicodeJavaTests.scala
 
 }

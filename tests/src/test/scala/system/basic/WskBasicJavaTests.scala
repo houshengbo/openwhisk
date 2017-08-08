@@ -24,7 +24,7 @@ import common.TestUtils
 import common.TestUtils.ANY_ERROR_EXIT
 import common.WskTestHelpers
 import common.WskProps
-import common.Wsk
+import common.BaseWsk
 
 import org.junit.runner.RunWith
 import org.scalatest.Matchers
@@ -33,7 +33,48 @@ import org.scalatest.junit.JUnitRunner
 import spray.json.JsString
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskBasicJavaTests extends TestHelpers with WskTestHelpers with Matchers {
+=======
+abstract class WskBasicJavaTests
+    extends TestHelpers
+    with WskTestHelpers
+    with Matchers {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+    val expectedDuration = 120.seconds
+    val activationPollDuration = 60.seconds
+
+    behavior of "Java Actions"
+
+    /**
+     * Test the Java "hello world" demo sequence
+     */
+    it should "Invoke a java action" in withAssetCleaner(wskprops) {
+        (wp, assetHelper) =>
+            val name = "helloJava"
+            val file = Some(TestUtils.getTestActionFilename("helloJava.jar"))
+
+            assetHelper.withCleaner(wsk.action, name) {
+                (action, _) => action.create(name, file, main = Some("hello.HelloJava"))
+            }
+
+            val start = System.currentTimeMillis()
+            withActivation(wsk.activation, wsk.action.invoke(name), totalWait = activationPollDuration) {
+                _.response.result.get.toString should include("Hello stranger!")
+            }
+
+            withActivation(wsk.activation, wsk.action.invoke(name, Map("name" -> JsString("Sir"))), totalWait = activationPollDuration) {
+                _.response.result.get.toString should include("Hello Sir!")
+            }
+
+            withClue("Test duration exceeds expectation (ms)") {
+                val duration = System.currentTimeMillis() - start
+                duration should be <= expectedDuration.toMillis
+            }
+    }
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
   implicit val wskprops = WskProps()
   val wsk = new Wsk

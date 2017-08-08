@@ -30,7 +30,7 @@ import org.scalatest.junit.JUnitRunner
 
 import common.TestHelpers
 import common.TestUtils
-import common.Wsk
+import common.BaseWsk
 import common.WskProps
 import common.WskTestHelpers
 import spray.json.DefaultJsonProtocol.IntJsonFormat
@@ -41,11 +41,21 @@ import spray.json.pimpAny
  * Tests of the text console
  */
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskConsoleTests extends TestHelpers with WskTestHelpers {
 
   implicit val wskprops = WskProps()
   val wsk = new Wsk
   val guestNamespace = wskprops.namespace
+=======
+abstract class WskConsoleTests
+    extends TestHelpers
+    with WskTestHelpers {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+    val guestNamespace = wskprops.namespace
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
   behavior of "Wsk Activation Console"
 

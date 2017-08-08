@@ -24,7 +24,7 @@ import scala.concurrent.duration.DurationInt
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import common.TestUtils
-import common.Wsk
+import common.BaseWsk
 import common.WskProps
 import spray.json._
 import spray.json.DefaultJsonProtocol.StringJsonFormat
@@ -34,11 +34,21 @@ import common.TestHelpers
 import common.WskProps
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskPackageTests extends TestHelpers with WskTestHelpers {
 
   implicit val wskprops = WskProps()
   val wsk = new Wsk
   val LOG_DELAY = 80 seconds
+=======
+abstract class WskPackageTests
+    extends TestHelpers
+    with WskTestHelpers {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+    val LOG_DELAY = 80 seconds
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
   behavior of "Wsk Package"
 

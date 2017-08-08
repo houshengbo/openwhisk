@@ -26,16 +26,27 @@ import spray.json.DefaultJsonProtocol.StringJsonFormat
 import common.JsHelpers
 import common.TestHelpers
 import common.TestUtils
-import common.Wsk
+import common.BaseWsk
 import common.WskProps
 import common.WskTestHelpers
 import common.WhiskProperties
 
 @RunWith(classOf[JUnitRunner])
+<<<<<<< HEAD
 class WskBasicPythonTests extends TestHelpers with WskTestHelpers with Matchers with JsHelpers {
 
   implicit val wskprops = WskProps()
   val wsk = new Wsk
+=======
+abstract class WskBasicPythonTests
+    extends TestHelpers
+    with WskTestHelpers
+    with Matchers
+    with JsHelpers {
+
+    implicit val wskprops = WskProps()
+    val wsk: BaseWsk
+>>>>>>> 7e0c0e9... Replace the test cases with REST implementation
 
   behavior of "Native Python Action"
 
