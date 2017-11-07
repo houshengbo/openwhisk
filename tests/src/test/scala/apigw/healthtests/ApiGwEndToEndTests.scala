@@ -28,13 +28,14 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
+import akka.http.scaladsl.model.StatusCodes.OK
 
 import com.jayway.restassured.RestAssured
 
 import common.TestHelpers
 import common.TestUtils
 import common.TestUtils._
-import common.Wsk
+import common.rest.WskRest
 import common.WskProps
 import common.WskTestHelpers
 import spray.json._
@@ -54,7 +55,7 @@ class ApiGwEndToEndTests
     with BeforeAndAfterAll {
 
   implicit val wskprops = WskProps()
-  val wsk = new Wsk
+  val wsk = new WskRest
   val clinamespace = wsk.namespace.whois()
 
   // Custom CLI properties file
@@ -96,9 +97,10 @@ class ApiGwEndToEndTests
       wsk.action.create(
         name = actionName,
         artifact = Some(file),
-        expectedExitCode = SUCCESS_EXIT,
+        expectedExitCode = OK.intValue,
         annotations = Map("web-export" -> true.toJson))
 
+      //wsk.action.get("apimgmt/createApi")
       // Create the API
       var rr = wsk.api.create(
         basepath = Some(testbasepath),

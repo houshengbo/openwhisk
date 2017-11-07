@@ -186,8 +186,8 @@ trait DeleteFromCollectionRest extends BaseDeleteFromCollection {
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def delete(entity: String, expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
-    val (ns, entityName) = getNamespaceEntityName(entity)
+  override def delete(name: String, expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
+    val (ns, entityName) = getNamespaceEntityName(name)
     val path = Path(s"$basePath/namespaces/$ns/$noun/$entityName")
     val resp = requestEntity(DELETE, path)(wp)
     val r = new RestResult(resp.status, getRespData(resp))
@@ -957,7 +957,9 @@ class WskRestApi extends RunWskRestCmd with BaseApi {
     val r = action match {
       case Some(action) => {
         val (ns, actionName) = this.getNamespaceEntityName(action)
-        val actionUrl = s"${WhiskProperties.getApiHostForAction}/$basePath/web/$ns/default/$actionName.http"
+        //val actionUrl = s"${WhiskProperties.getApiHostForAction}/$basePath/web/$ns/default/$actionName.http"
+
+        val actionUrl = s"https://${WhiskProperties.getBaseControllerHost()}$basePath/web/$ns/default/$actionName.http"
         val actionAuthKey = this.getAuthKey(wp)
         val testaction = Some(
           ApiAction(name = actionName, namespace = ns, backendUrl = actionUrl, authkey = actionAuthKey))
@@ -989,7 +991,8 @@ class WskRestApi extends RunWskRestCmd with BaseApi {
           } getOrElse Map[String, JsValue]()
         }
 
-        val parm = Map[String, JsValue]("apidoc" -> JsObject(parms)) ++ { Map("__ow_user" -> ns.toJson) } ++ {
+        //val parm = Map[String, JsValue]("apidoc" -> JsObject(parms)) ++ { Map("__ow_user" -> ns.toJson) } ++ {
+        val parm = Map[String, JsValue]("apidoc" -> JsObject(parms)) ++ {
           responsetype map { r =>
             Map("responsetype" -> r.toJson)
           } getOrElse Map[String, JsValue]()
@@ -998,6 +1001,8 @@ class WskRestApi extends RunWskRestCmd with BaseApi {
         } ++ {
           Map("spaceguid" -> wp.authKey.split(":")(0).toJson)
         }
+
+        val whiskUrl = Uri(s"https://${WhiskProperties.getBaseControllerHost()}")
 
         invokeAction(
           name = "apimgmt/createApi",
@@ -1138,7 +1143,8 @@ class RunWskRestCmd() extends FlatSpec with RunWskCmd with Matchers with ScalaFu
 
   implicit val config = PatienceConfig(100 seconds, 15 milliseconds)
   implicit val materializer = ActorMaterializer()
-  val whiskRestUrl = Uri(WhiskProperties.getApiHostForAction)
+  //val whiskRestUrl = Uri(WhiskProperties.getApiHostForAction)
+  val whiskRestUrl = Uri(s"http://${WhiskProperties.getBaseControllerAddress()}")
   val basePath = Path("/api/v1")
 
   val sslConfig = AkkaSSLConfig().mapSettings { s =>
@@ -1290,22 +1296,31 @@ class RunWskRestCmd() extends FlatSpec with RunWskCmd with Matchers with ScalaFu
                    parameterFile: Option[String] = None,
                    blocking: Boolean = false,
                    result: Boolean = false,
-                   expectedExitCode: Int = Accepted.intValue)(implicit wp: WskProps): RestResult = {
+                   expectedExitCode: Int = Accepted.intValue,
+                   whiskUrl: Uri = whiskRestUrl)(implicit wp: WskProps): RestResult = {
     val (ns, actName) = this.getNamespaceEntityName(name)
-    val path = Path(s"$basePath/namespaces/$ns/actions/$actName")
+    //val path = Path(s"$basePath/web/namespaces/whisk.system/actions/$actName")
+    val path = Path(s"$basePath/web/whisk.system/$actName.http")
+    //https://172.17.0.1/api/v1/web/whisk.system/apimgmt/createApi.http
     var paramMap = Map("blocking" -> blocking.toString, "result" -> result.toString)
     val input = parameterFile map { pf =>
       Some(FileUtils.readFileToString(new File(pf)))
     } getOrElse Some(parameters.toJson.toString())
-    val resp = requestEntity(POST, path, paramMap, input)
+    val resp = requestEntity(POST, path, paramMap, input, whiskUrl = whiskUrl)
+    println("whiskUrl is " + whiskUrl.toString())
+    println("path is " + path.toString())
     val r = new RestResult(resp.status.intValue, getRespData(resp))
+    println("expectedExitCode is " + expectedExitCode)
+    println("respoense is " + r.stdout)
     // If the statusCode does not not equal to expectedExitCode, it is acceptable that the statusCode
     // equals to 200 for the case that either blocking or result is set to true.
-    if (!isStatusCodeExpected(expectedExitCode, r.statusCode.intValue)) {
-      if (blocking || result) {
-        validateStatusCode(OK.intValue, r.statusCode.intValue)
-      } else {
-        r.statusCode.intValue shouldBe expectedExitCode
+    if ((expectedExitCode != DONTCARE_EXIT) && (expectedExitCode != ANY_ERROR_EXIT)) {
+      if (!isStatusCodeExpected(expectedExitCode, r.statusCode.intValue)) {
+        if (blocking || result) {
+          validateStatusCode(OK.intValue, r.statusCode.intValue)
+        } else {
+          r.statusCode.intValue shouldBe expectedExitCode
+        }
       }
     }
     r

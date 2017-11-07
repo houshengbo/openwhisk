@@ -302,6 +302,7 @@ class WskAction()
         Seq("--web", w)
       } getOrElse Seq()
     }
+    println("params are action " + params)
     cli(wp.overrides ++ params, expectedExitCode)
   }
 
@@ -864,6 +865,7 @@ class WskApi() extends RunWskCmd with BaseApi {
         Seq("--response-type", t)
       } getOrElse Seq()
     }
+    println("params are " + params)
     cli(
       wp.overrides ++ params,
       expectedExitCode,
