@@ -17,6 +17,8 @@ ENV JAVA_HOME /usr/lib/jvm/java-${VERSION}-oracle
 ENV JRE_HOME ${JAVA_HOME}/jre
 ENV PATH $JAVA_HOME/bin:$PATH
 
+ENV JAVA_URL https://api.adoptopenjdk.net/openjdk8-openj9/releases/x64_linux/latest/binary
+#ENV JAVA_URL http://download.oracle.com/otn-pub/java/jdk/"${VERSION}"u"${UPDATE}"-b"${BUILD}"/"${SIG}"/jdk-"${VERSION}"u"${UPDATE}"-linux-x64.tar.gz
 
 RUN apk upgrade --update && \
     apk add --update libstdc++ curl ca-certificates bash sed wget&& \
@@ -27,8 +29,8 @@ RUN apk upgrade --update && \
     ( /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true ) && \
     echo "export LANG=${LANG}" > /etc/profile.d/locale.sh && \
     /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib && \
-    curl --silent --location --retry 3 --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-    http://download.oracle.com/otn-pub/java/jdk/"${VERSION}"u"${UPDATE}"-b"${BUILD}"/"${SIG}"/jdk-"${VERSION}"u"${UPDATE}"-linux-x64.tar.gz \
+    curl --silent --location --retry 3 \
+    "${JAVA_URL}" \
     | tar xz -C /tmp && \
     mkdir -p /usr/lib/jvm && mv /tmp/jdk1.${VERSION}.0_${UPDATE} "${JAVA_HOME}" && \
     rm -rf "$JAVA_HOME"/*src.zip \
