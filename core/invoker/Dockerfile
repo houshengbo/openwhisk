@@ -6,7 +6,7 @@ FROM scala
 ENV DOCKER_VERSION 1.12.0
 ENV KUBERNETES_VERSION 1.6.4
 
-RUN apk add --update openssl
+RUN apk add --update openssl curl
 
 # Uncomment to fetch latest version of docker instead: RUN wget -qO- https://get.docker.com | sh
 # Install docker client

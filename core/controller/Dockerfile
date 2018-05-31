@@ -3,6 +3,8 @@
 
 FROM scala
 
+RUN apk add --update curl
+
 # Install swagger-ui
 RUN curl -sSL -o swagger-ui-v3.6.0.tar.gz --no-verbose https://github.com/swagger-api/swagger-ui/archive/v3.6.0.tar.gz && \
     mkdir swagger-ui && \
